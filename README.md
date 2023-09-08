@@ -330,19 +330,21 @@ minha_query = { "país": { "$regex": "^U"} }
 valores_novos = { "$set": { "país": "Índia" } }
 x = colecao.update_many(minha_query, valores_novos)
 for itens in colecao.find():
-    print(itens
-
+    print(itens)
 ```
 ` {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'China'}
  {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'Índia'}
  {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
  {'_id': 4, 'nome': 'Grace Hopper', 'país': 'Índia'}
  {'_id': 5, 'nome': 'John McCarthy', 'país': 'Índia'}`
+ <br>
+ 
 O atributo modified_count nos informa quantos documentos foram atualizados:
 
 ```python
-print(f'Documentos atualizados: {x.modified_count}') # 3
+print(f'Documentos atualizados: {x.modified_count}')
 ```
+`3`
 ##  Limitando o Resultado
 Se desejarmos limitar nosso resultado apenas a uma certa quantidade, podemos usar o método limit(). O método limit() recebe um parâmetro: um número que define quantos documentos retornar.
 
@@ -351,7 +353,7 @@ Para usá-lo é muito simples:
 limite = colecao.find().limit(3)
 for l in limite:
     print(l)
-```python
+```
 ` {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'China'}
  {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'Índia'}
  {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}`
