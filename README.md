@@ -133,66 +133,226 @@ lista = [
   { "_id": 5, "nome": "John McCarthy", "país": "USA"}
 ]
 l = colecao.insert_many(lista)
-print(l.inserted_ids) # [1, 2, 3, 4, 5]
+print(l.inserted_ids) 
 ```
+`  [1, 2, 3, 4, 5]  `<br><br>
 Observe que dessa vez inserimos manualmente os _ids, porém você pode omití-los se quiser!
 
 
+## Buscando Dados no MongoDB
+Para selecionarmos dados de uma coleção no MongoDB podemos usar o método find_one() que nos trará a primeira ocorrência na seleção.
+
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+busca = colecao.find_one()
+print(busca)
+```
+` {'_id': ObjectId('5fb2500b16fa7564711462fb'), 'nome': 'Donald Knuth', 'país': 'USA'}`<br><br>
+
+### 1. Buscando Todos os Dados
+O método find() nos permite buscarmos por todas as ocorrências, o primeiro parâmetro do método find() é um objeto de query, nesse caso específico vamos deixá-lo vazio para retornarmos todos os documentos da coleção.
+
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+for itens in colecao.find():
+    print(itens)
+```
+`{'_id': ObjectId('5fb252ddbbf4a01d238808d8'), 'nome': 'Donald Knuth', 'país': 'USA'}
+{'_id': ObjectId('5fb252e3bbf4a01d238808d9'), 'nome': 'Charles Babbage', 'país': 'England'}
+{'_id': 1, 'nome': 'Marvin Minsky', 'país': 'USA'}
+{'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}
+{'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
+{'_id': 4, 'nome': 'Grace Hopper', 'país': 'USA'}
+{'_id': 5, 'nome': 'John McCarthy', 'país': 'USA'}`<br><br>
+
+### 2. Buscando Dados Específicos
+Se desejarmos que a busca nos retorne apenas campos específicos, o segundo parâmetro do método find() é um objeto descrevendo qual campo incluir no resultado.
+
+O parâmetro é opcional, e se for omitido, todos os campos serão incluídos no resultado.
+
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+for item in colecao.find({'_id': 1}):
+    print(item)
+```
+
+`{'_id': 1, 'nome': 'Marvin Minsky', 'país': 'USA'}`<br><br>
+
+## 3. Selecionando apenas cientistas de um país específico:
+
+```python
+for item in colecao.find({'país': 'USA'}):
+    print(item)
+```
+
+`{'_id': ObjectId('5fb252ddbbf4a01d238808d8'), 'nome': 'Donald Knuth', 'país': 'USA'}
+ {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'USA'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}
+ {'_id': 4, 'nome': 'Grace Hopper', 'país': 'USA'}
+ {'_id': 5, 'nome': 'John McCarthy', 'país': 'USA'}`<br><br>
+
+Podemos também usar expressões regulares como filtros de nossas consultas. Vejamos um exemplo de como podemos consultar apenas os cientistas que começam com a letra D:
+
+```python
+query = { "nome": { "$regex": "^D" } }
+for item in colecao.find(query):
+    print(item)
+```
+
+`{'_id': ObjectId('5fb252ddbbf4a01d238808d8'), 'nome': 'Donald Knuth', 'país': 'USA'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}`<br><br>
 
 
 
+## Ordenando o Resultado
+O método sort() pode ser usado para ordenar os resultados em ordem ascendente ou descendente.
+
+O método sort() recebe um parâmetro para "fieldname" (campo) e um parâmetro para "direção" (ascendente é a direção padrão).
+
+```python
+doc = colecao.find().sort('nome')
+for d in doc:
+    print(d)
+```
+
+`{'_id': ObjectId('5fb252e3bbf4a01d238808d9'), 'nome': 'Charles Babbage', 'país': 'England'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}
+ {'_id': ObjectId('5fb252ddbbf4a01d238808d8'), 'nome': 'Donald Knuth', 'país': 'USA'}
+ {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
+ {'_id': 4, 'nome': 'Grace Hopper', 'país': 'USA'}
+ {'_id': 5, 'nome': 'John McCarthy', 'país': 'USA'}
+ {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'USA'}`<br><br>
+Para ordenarmos na ordem inversa, usamos -1 como segundo parâmetro, nossa lista será então ordenada de forma descendente.
+
+```python
+doc = colecao.find().sort('nome', -1)
+for d in doc:
+    print(d)
+```
+`{'_id': 1, 'nome': 'Marvin Minsky', 'país': 'USA'}
+{'_id': 5, 'nome': 'John McCarthy', 'país': 'USA'}
+{'_id': 4, 'nome': 'Grace Hopper', 'país': 'USA'}
+{'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
+{'_id': ObjectId('5fb252ddbbf4a01d238808d8'), 'nome': 'Donald Knuth', 'país': 'USA'}
+{'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}
+{'_id': ObjectId('5fb252e3bbf4a01d238808d9'), 'nome': 'Charles Babbage', 'país': 'England'}`<br><br>
 
 
 
+## Deletando Documentos
+Para deletarmos documentos utilizamos o método delete_one(), o primeiro parâmetro do método delete_one() é um objeto query definindo o documento a ser deletado.
 
+Importante: Se o query (consulta) encontrar mais de um documento, somente a primeira ocorrência será deletada.
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+query = {"nome": "Marvin Minsky"}
+colecao.delete_one(query)
+```
+Observe que ao executarmos a remoção, nos será retornado um objeto DeleteResult.
 
+## Deletando vários Documentos
+Caso queiramos deletar mais de um documento, temos o método delete_many() para nos auxiliar, que recebe como primeiro parâmetro um objeto query que definirá quais documentos deletar.
 
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+minha_query = { "nome" : {"$regex": "^J"} }
+d = colecao.delete_many(minha_query)
+```
 
+Veja que utilizamos uma expressão regular, nesse caso todos os nomes que começarem com J vão ser deletados. Caso seja necessário deletar todos os documentos, utilizamos o método delete_many() passando um objeto vazio, veja:
 
+```python
+d = colecao.delete_many({})
+```
+Para vermos quantos documentos foram removidos, podemos acessar o atributo deleted_count:
 
+```python
+print(f'Documentos removidos: {d.deleted_count}')
+```
 
+`Documentos removidos: 5`
 
+## Deletando uma Coleção
+Podemos deletar uma coleção de forma muito simples com o método drop(), nesse caso vamos deletar nossa coleção de cientistas:
 
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+colecao.drop()
+```
+O método drop() irá retornar True se a coleção for deletada com sucesso, caso contrário retornará False (se ela não existir).
 
+## Atualizando Coleções
+Podemos atualizar nossos documentos com o método update_one(), que recebe como primeiro parâmetro um objeto query definindo o documento a ser atualizado, se o query encontrar mais de um elemento, somente a primeira ocorrência será atualizada, o segundo parâmetro é um objeto definindo os novos valores do documento.
 
-## Controle de Versão e Git
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+query = { "nome": "Marvin Minsky" }
+novos_valores = { "$set": { "país": "China"} }
+colecao.update_one(query, novos_valores)
+for x in colecao.find():
+    print(x)
+```
+` {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'China'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'USA'}
+ {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
+ {'_id': 4, 'nome': 'Grace Hopper', 'país': 'USA'}
+ {'_id': 5, 'nome': 'John McCarthy', 'país': 'USA'}`
 
-**Objetivo:**
+## Atualizando Diversas Coleções
+Para atualizarmos todos os documentos que atendam ao critério de nosso query, utilizamos o método update_many(). Nesse caso vamos atualizar todos os endereços que começam com a letra R.
+```python
+import pymongo
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+meu_banco = cliente['banco_de_dados']
+colecao = meu_banco['cientistas']
+minha_query = { "país": { "$regex": "^U"} }
+valores_novos = { "$set": { "país": "Índia" } }
+x = colecao.update_many(minha_query, valores_novos)
+for itens in colecao.find():
+    print(itens
 
-- Compreender a importância do controle de versão.
-- Aprender os conceitos básicos do Git, incluindo forks e resolução de conflitos.
+```
+` {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'China'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'Índia'}
+ {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}
+ {'_id': 4, 'nome': 'Grace Hopper', 'país': 'Índia'}
+ {'_id': 5, 'nome': 'John McCarthy', 'país': 'Índia'}`
+O atributo modified_count nos informa quantos documentos foram atualizados:
 
-### 1. O que é Controle de Versão?
+```python
+print(f'Documentos atualizados: {x.modified_count}') # 3
+```
+##  Limitando o Resultado
+Se desejarmos limitar nosso resultado apenas a uma certa quantidade, podemos usar o método limit(). O método limit() recebe um parâmetro: um número que define quantos documentos retornar.
 
-![capa](./image/cd5ikg9p.bmp)
+Para usá-lo é muito simples:
+```python
+limite = colecao.find().limit(3)
+for l in limite:
+    print(l)
+```python
+` {'_id': 1, 'nome': 'Marvin Minsky', 'país': 'China'}
+ {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'Índia'}
+ {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}`
 
-O Controle de Versão é um sistema que registra as mudanças feitas em um conjunto de arquivos ao longo do tempo. Ele é essencial para colaboração em projetos de software e para o acompanhamento das alterações realizadas.
-
-### 2. Por que usar Controle de Versão?
-
-- 🤝🏻**Colaboração eficiente:** Permite que várias pessoas trabalhem simultaneamente no mesmo projeto, mantendo um histórico claro de quem fez quais alterações.
-- 🔁 **Reversão de mudanças:** É possível voltar a versões anteriores do código caso algo dê errado.
-- 🔎 **Rastreamento de alterações:** Ajuda a entender como o código evoluiu ao longo do tempo e por quais mãos passou.
-
-### 3. Conceitos Básicos do Git
-
-- **`Repositório`:** É o espaço onde o Git armazena as informações do seu projeto, incluindo o histórico de alterações.
-- **`Commit`:** É uma "foto" instantânea de todos os arquivos do projeto em um determinado momento. Cada commit possui uma mensagem descritiva.
-- **`Branch (Ramificação)`:** É uma linha de desenvolvimento independente que permite trabalhar em novas funcionalidades ou correções sem afetar o código principal. O branch principal é geralmente chamado de "master" ou "main".
-- **`Merge (Mesclagem)`:** É a combinação de alterações de um branch para outro, como incorporar uma funcionalidade desenvolvida em um branch de desenvolvimento de volta ao branch principal.
-- **`Fork`:** Um fork é uma cópia independente de um repositório. É frequentemente usado para contribuir para projetos de código aberto sem afetar diretamente o repositório original.
-
-### 4. Trabalhando com commit
-
-1. **Boas práticas:** Criar mensagens de commit claras e informativas é uma prática importante ao trabalhar com o Git. Mensagens de commit bem escritas ajudam a comunicar as alterações feitas no código, facilitam a colaboração com outros desenvolvedores e tornam o histórico do projeto mais compreensível.
-    1. **Separe o título do corpo**: Uma mensagem de commit geralmente consiste em um título curto (linha única) seguido de um corpo opcional.
-    2. **Título conciso e descritivo**: O título deve ser curto,
-    mas ainda assim informativo. Ele deve resumir o que a alteração fez, em
-    termos claros e descritivos. Use verbos no imperativo, como "Adicionar",
-     "Corrigir" ou "Atualizar", para indicar a ação realizada.
-
-        ```bash
-        git commit -a -m "Inserindo um commit da forma certa"
-        ```
-
-    3. **Capitalização e pontuação**: Use letras maiúsculas no
