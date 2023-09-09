@@ -358,3 +358,4 @@ for l in limite:
  {'_id': 2, 'nome': 'Dennis Ritchie', 'país': 'Índia'}
  {'_id': 3, 'nome': 'Edsger Dijkstra', 'país': 'Netherlands'}`
 
+##### Original: https://pythoniluminado.netlify.app/mongodb#limitando-o-resultado
